@@ -3,13 +3,19 @@ package com.example.lab6search;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.SearchView;
 import android.widget.Toast;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -30,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
         // on create, give value
         btn_add = findViewById(R.id.btn_add);
         btn_view = findViewById(R.id.btn_view);
-        et_age=findViewById(R.id.et_age);
+        et_age = findViewById(R.id.et_age);
         et_name = findViewById(R.id.et_name);
         lv_StudentList = findViewById(R.id.lv_StudentList);
 
@@ -40,9 +46,9 @@ public class MainActivity extends AppCompatActivity {
 
         //Listeners:
 
-        btn_view.setOnClickListener( new View.OnClickListener() {
+        btn_view.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v){
+            public void onClick(View v) {
                 dataBaseHelper = new DataBaseHelper(MainActivity.this);
                 ShowStudentsOnListView(dataBaseHelper);
 
@@ -50,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        btn_add.setOnClickListener( new View.OnClickListener() {
+        btn_add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // create model
@@ -65,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
 
                 DataBaseHelper dataBaseHelper = new DataBaseHelper(MainActivity.this);
                 boolean b = dataBaseHelper.addOne(studentMod);
-                Toast.makeText(MainActivity.this, "SUCCESS= "+ b, Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "SUCCESS= " + b, Toast.LENGTH_SHORT).show();
 
                 ShowStudentsOnListView(dataBaseHelper);
 
@@ -88,4 +94,36 @@ public class MainActivity extends AppCompatActivity {
         lv_StudentList.setAdapter(studentArrayAdapter);
     }
 
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.options_menu, menu);
+        MenuItem menuItem = menu.findItem(R.id.search);
+        SearchView searchView = (SearchView) menuItem.getActionView();
+        searchView.setQueryHint("Type here to search");
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() { // onQueryTextSubmit method will be called when user types some character(s) and presses Enter
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                List<StudentMod> searchResult = dataBaseHelper.searchStudent(s);
+                if (searchResult.isEmpty()) {
+                    Toast.makeText(MainActivity.this, "Student not found!", Toast.LENGTH_SHORT).show();
+                } else {
+                    studentArrayAdapter = new
+                            ArrayAdapter<StudentMod>(MainActivity.this, android.R.layout.simple_list_item_1, searchResult);
+                    lv_StudentList.setAdapter(studentArrayAdapter);
+                }
+                return false;
+            }
+
+            // onQueryTextChange method will be called once user types a character
+            @Override
+            public boolean onQueryTextChange(String s) {
+                return false;
+            }
+        });
+        return true;
+
+
+    }
 }
